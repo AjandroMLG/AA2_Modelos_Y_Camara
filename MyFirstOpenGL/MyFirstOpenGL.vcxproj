@@ -27,7 +27,6 @@
     <None Include="MyFirstFragmentShader.glsl" />
     <None Include="MyFirstGeometryShader.glsl" />
     <None Include="MyFirstVertexShader.glsl" />
-    <None Include="PyramidFragmentShader.glsl" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cube.h" />

@@ -11,12 +11,22 @@
 #define WINDOW_HEIGHT 480
 
 std::vector<GLuint> compiledPrograms;
+std::vector<Model> models;
 
 struct ShaderProgram {
 
 	GLuint vertexShader = 0;
 	GLuint geometryShader = 0;
 	GLuint fragmentShader = 0;
+};
+
+struct Camera {
+	glm::vec3 position = glm::vec3(0.0f, 1.0f, 5.0f);
+	glm::vec3 localVectorUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	float fFov = 45.f;
+	float fNear = 0.1f;
+	float fFar = 100.f;
 };
 
 #pragma region Settings
@@ -344,7 +354,6 @@ Model LoadOBJModel(const std::string& filePath) {
 	}
 	return Model(vertexs, textureCoordinates, vertexNormal);
 }
-
 #pragma endregion
 
 
@@ -389,14 +398,7 @@ void CompilePrograms()
 	cubeOrthoProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
 
 	//Compilar programa
-	compiledPrograms.push_back(CreateProgram(cubeOrthoProgram));
-
-	ShaderProgram pyramidProgram;
-	pyramidProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
-	pyramidProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
-	pyramidProgram.fragmentShader = LoadFragmentShader("PyramidFragmentShader.glsl");
-
-	compiledPrograms.push_back(CreateProgram(pyramidProgram));
+	compiledPrograms.push_back(CreateProgram(cubeOrthoProgram));	
 }
 
 
@@ -411,37 +413,93 @@ void main() {
 	GLFWwindow* window = InitialiceWindow();
 	InitialiceSettings(window);	
 
+	//Leer textura
+	int width, height, nrChannels;
+	unsigned char* textureInfo = stbi_load("Assets/Textures/troll.png", &width, &height, &nrChannels, 0);
+
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {
+		
 
-		GameObject* cube = new Cube();
+		Camera camera;
+
+		ShaderProgram myFirstProgram;
+		myFirstProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
+		myFirstProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
+		myFirstProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
+
 		CompilePrograms();
 
 		//Definimos color para limpiar el buffer de color
-		glClearColor(0.f, 0.f, 0.f, 1.f);		
+
+		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
+		//Compìlar programa
+		compiledPrograms.push_back(CreateProgram(myFirstProgram));
+
+		//Definimos canal de textura activo
+		glActiveTexture(GL_TEXTURE0);
+
+		//Generar textura
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+
+		//Vinculamos texture
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		//Configurar textura
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		//Cargar imagen a la textura
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureInfo);
+
+		//Generar mipmap
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		//Liberar memoria de la imagen cargada
+		stbi_image_free(textureInfo);
 
 		//Indicar a la tarjeta GPU que programa debe usar
 		glUseProgram(compiledPrograms[0]);
+
+		//Definir la matriz de traslacion, rotacion y escalado
+		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f));
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.f, 1.f, 0.f));
+		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f), glm::vec3(1.f));
+
+		// Definir la matriz de vista
+		glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
+		// Definir la matriz proyeccion
+		glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
+
+		//Asignar valores iniciales al programa
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		//Leer textura
-		int width, height, nrChannels;
-		unsigned char* textureInfo = stbi_load("Assets/Textures/troll.png", &width, &height, &nrChannels, 0);
+		//Asignar valor variable de textura a usar.
+		glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 
+		// Pasar las matrices
+		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translationMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotationMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
+		
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 
 				currentTime = glfwGetTime();
 				timer = currentTime % 6;
-				glUseProgram(compiledPrograms[1]);
-				glUniform1i(glGetUniformLocation(compiledPrograms[1], "pyramidColor"), timer);
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);			
 
-				//Definimos que queremos usar el VAO con los puntos
-				cube->Update(compiledPrograms[0]);
+				models[0].Render();
 
+				//Definimos que queremos usar el VAO con los puntos
 				glFlush();
 				glfwSwapBuffers(window);				
 		}
@@ -457,5 +515,4 @@ void main() {
 
 	//Finalizamos GLFW
 	glfwTerminate();
-
 }

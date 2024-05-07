@@ -19,11 +19,11 @@
     <Filter Include="Shaders\Fragment Shader">
       <UniqueIdentifier>{e243a30f-86f7-4a1d-86d8-adc8203d2fff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Geometry Shader">
-      <UniqueIdentifier>{1d6c942d-d865-42b8-9b55-4ed00ea734c9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Vertex Shader">
       <UniqueIdentifier>{5d91298a-307b-4622-b6eb-e86ab1c3de59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Geometry Shader">
+      <UniqueIdentifier>{1d6c942d-d865-42b8-9b55-4ed00ea734c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -45,9 +45,6 @@
       <Filter>Shaders\Geometry Shader</Filter>
     </None>
     <None Include="MyFirstFragmentShader.glsl">
-      <Filter>Shaders\Fragment Shader</Filter>
-    </None>
-    <None Include="PyramidFragmentShader.glsl">
       <Filter>Shaders\Fragment Shader</Filter>
     </None>
   </ItemGroup>
