@@ -1,10 +1,11 @@
 #include "Cube.h"
-#include "Orthohedron.h"
-#include "Pyramid.h"
 #include "InputManager.h"
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "Model.h"
+#include <sstream>
+#include <stb_image.h>
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -232,6 +233,117 @@ GLuint CreateProgram(const ShaderProgram& shaders) {
 	}
 }
 
+Model LoadOBJModel(const std::string& filePath) {
+
+	//Verifico archivo y si no puedo abrirlo cierro aplicativo
+	std::ifstream file(filePath);
+
+	if (!file.is_open()) {
+		std::cerr << "No se ha podido abrir el archivo: " << filePath << std::endl;
+		std::exit(EXIT_FAILURE);
+	}
+
+	//Variables lectura fichero
+	std::string line;
+	std::stringstream ss;
+	std::string prefix;
+	glm::vec3 tmpVec3;
+	glm::vec2 tmpVec2;
+
+	//Variables elemento modelo
+	std::vector<float> vertexs;
+	std::vector<float> vertexNormal;
+	std::vector<float> textureCoordinates;
+
+	//Variables temporales para algoritmos de sort
+	std::vector<float> tmpVertexs;
+	std::vector<float> tmpNormals;
+	std::vector<float> tmpTextureCoordinates;
+
+	//Recorremos archivo linea por linea
+	while (std::getline(file, line)) {
+
+		//Por cada linea reviso el prefijo del archivo que me indica que estoy analizando
+		ss.clear();
+		ss.str(line);
+		ss >> prefix;
+
+		//Estoy leyendo un vertice
+		if (prefix == "v") {
+
+			//Asumo que solo trabajo 3D así que almaceno XYZ de forma consecutiva
+			ss >> tmpVec3.x >> tmpVec3.y >> tmpVec3.z;
+
+			//Almaceno en mi vector de vertices los valores
+			tmpVertexs.push_back(tmpVec3.x);
+			tmpVertexs.push_back(tmpVec3.y);
+			tmpVertexs.push_back(tmpVec3.z);
+		}
+
+		//Estoy leyendo una UV (texture coordinate)
+		else if (prefix == "vt") {
+
+			//Las UVs son siempre imagenes 2D asi que uso el tmpvec2 para almacenarlas
+			ss >> tmpVec2.x >> tmpVec2.y;
+
+			//Almaceno en mi vector temporal las UVs
+			tmpTextureCoordinates.push_back(tmpVec2.x);
+			tmpTextureCoordinates.push_back(tmpVec2.y);
+
+		}
+
+		//Estoy leyendo una normal
+		else if (prefix == "vn") {
+
+			//Asumo que solo trabajo 3D así que almaceno XYZ de forma consecutiva
+			ss >> tmpVec3.x >> tmpVec3.y >> tmpVec3.z;
+
+			//Almaceno en mi vector temporal de normales las normales
+			tmpNormals.push_back(tmpVec3.x);
+			tmpNormals.push_back(tmpVec3.y);
+			tmpNormals.push_back(tmpVec3.z);
+
+		}
+
+		//Estoy leyendo una cara
+		else if (prefix == "f") {
+
+			int vertexData;
+			short counter = 0;
+
+			//Obtengo todos los valores hasta un espacio
+			while (ss >> vertexData) {
+
+				//En orden cada numero sigue el patron de vertice/uv/normal
+				switch (counter) {
+				case 0:
+					//Si es un vertice lo almaceno - 1 por el offset y almaceno dos seguidos al ser un vec3, salto 1 / y aumento el contador en 1
+					vertexs.push_back(tmpVertexs[(vertexData - 1) * 3]);
+					vertexs.push_back(tmpVertexs[((vertexData - 1) * 3) + 1]);
+					vertexs.push_back(tmpVertexs[((vertexData - 1) * 3) + 2]);
+					ss.ignore(1, '/');
+					counter++;
+					break;
+				case 1:
+					//Si es un uv lo almaceno - 1 por el offset y almaceno dos seguidos al ser un vec2, salto 1 / y aumento el contador en 1
+					textureCoordinates.push_back(tmpTextureCoordinates[(vertexData - 1) * 2]);
+					textureCoordinates.push_back(tmpTextureCoordinates[((vertexData - 1) * 2) + 1]);
+					ss.ignore(1, '/');
+					counter++;
+					break;
+				case 2:
+					//Si es una normal la almaceno - 1 por el offset y almaceno tres seguidos al ser un vec3, salto 1 / y reinicio
+					vertexNormal.push_back(tmpNormals[(vertexData - 1) * 3]);
+					vertexNormal.push_back(tmpNormals[((vertexData - 1) * 3) + 1]);
+					vertexNormal.push_back(tmpNormals[((vertexData - 1) * 3) + 2]);
+					counter = 0;
+					break;
+				}
+			}
+		}
+	}
+	return Model(vertexs, textureCoordinates, vertexNormal);
+}
 
 #pragma endregion
 
@@ -288,6 +400,7 @@ void CompilePrograms()
 }
 
 
+
 void main() {
 
 	//Definir semillas del rand según el tiempo
@@ -302,9 +415,6 @@ void main() {
 	if (glewInit() == GLEW_OK) {
 
 		GameObject* cube = new Cube();
-		GameObject* orthohedron = new Orthohedron();
-		GameObject* pyramid = new Pyramid();
-		InputManager* inputs = new InputManager(cube, pyramid, orthohedron, window);		
 		CompilePrograms();
 
 		//Definimos color para limpiar el buffer de color
@@ -314,12 +424,14 @@ void main() {
 		glUseProgram(compiledPrograms[0]);
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
+		//Leer textura
+		int width, height, nrChannels;
+		unsigned char* textureInfo = stbi_load("Assets/Textures/troll.png", &width, &height, &nrChannels, 0);
+
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 
-			if (!inputs->paused)
-			{				
 				currentTime = glfwGetTime();
 				timer = currentTime % 6;
 				glUseProgram(compiledPrograms[1]);
@@ -329,13 +441,9 @@ void main() {
 
 				//Definimos que queremos usar el VAO con los puntos
 				cube->Update(compiledPrograms[0]);
-				orthohedron->Update(compiledPrograms[0]);
-				pyramid->Update(compiledPrograms[1]);
 
 				glFlush();
 				glfwSwapBuffers(window);				
-			}		
-			inputs->Update();
 		}
 		//Desactivar y eliminar programa
 		glUseProgram(0);
