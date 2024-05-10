@@ -1,61 +1,41 @@
 #pragma once
 #include "MatrixTools.h"
 #include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <gtc/type_ptr.hpp>
 #include <vector>
+
+
 
 
 class GameObject {
 public:
 
-	GLuint vao, vbo;
+	GLuint program;
+
 	glm::vec3 position;
 	glm::vec3 rotation;
-	glm::vec3 up;
-	glm::vec3 rotationDirection;
-	glm::mat4 modelMatrix;
-	std::vector<GLfloat> vertex;
-	float fVelocity;
-	float fAngularVelocity;
-	glm::vec4 defaultColor;
-	bool wareFrame;
-	bool render; 
-	float topScreen, downScreen;
+	glm::vec3 scale;
+	
+	glm::vec4 color;
 
-
-	GameObject()
+	GameObject(GLuint program, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)) 
+		: program(program), position(position), rotation(rotation), scale(scale), color(color)
 	{
-		render = true;
-		defaultColor = glm::vec4(1.0f);
-		position = glm::vec3(0.f);
-		rotation = glm::vec3(0.f);
-		up = glm::vec3(0.f, 1.f, 0.f);
-		rotationDirection = glm::vec3(0.f, 1.f, 0.f);
-		modelMatrix = glm::mat4(1.f);
-		fVelocity = 0.002f;
-		fAngularVelocity = -1.f;
-		topScreen = 0.85f;
-		downScreen = -0.85f;
+		
 	}
 
-	void SpeedUp()
+	virtual void Start()
 	{
-		fVelocity += fVelocity * 0.1f;
-	}
+		glUseProgram(program);
 
-	void SpeedDown()
-	{
-		fVelocity -= fVelocity * 0.1f;
-	}
+		glUniform1i(glGetUniformLocation(program, "textureSampler"), 0);
 
-	void ChangeView()
-	{
-		wareFrame != wareFrame;
-	}
+		glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateTranslationMatrix(position)));
+		glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateRotationMatrix(rotation, 0)));
+		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateScaleMatrix(scale)));
 
-	void ChangeRender()
-	{
-		render = !render;
-	}
+		glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
 
-	virtual void Update(GLuint compiled) = 0;
+	}
 };

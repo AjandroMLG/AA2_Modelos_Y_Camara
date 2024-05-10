@@ -392,13 +392,13 @@ void InitialiceSettings(GLFWwindow* window)
 void CompilePrograms()
 {
 	//Compilar shaders
-	ShaderProgram cubeOrthoProgram;
-	cubeOrthoProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
-	cubeOrthoProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
-	cubeOrthoProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
+	ShaderProgram trollProgram;
+	trollProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
+	trollProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
+	trollProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
 
 	//Compilar programa
-	compiledPrograms.push_back(CreateProgram(cubeOrthoProgram));	
+	compiledPrograms.push_back(CreateProgram(trollProgram));	
 }
 
 
@@ -418,8 +418,7 @@ void main() {
 	unsigned char* textureInfo = stbi_load("Assets/Textures/troll.png", &width, &height, &nrChannels, 0);
 
 	//Inicializamos GLEW y controlamos errores
-	if (glewInit() == GLEW_OK) {
-		
+	if (glewInit() == GLEW_OK) {	
 
 		Camera camera;
 
@@ -464,40 +463,83 @@ void main() {
 		//Indicar a la tarjeta GPU que programa debe usar
 		glUseProgram(compiledPrograms[0]);
 
-		//Definir la matriz de traslacion, rotacion y escalado
-		glm::mat4 translationMatrix = glm::translate(glm::mat4(1.f), glm::vec3(0.f));
-		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(0.0f), glm::vec3(0.f, 1.f, 0.f));
-		glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.f), glm::vec3(1.f));
-
-		// Definir la matriz de vista
-		glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
-		// Definir la matriz proyeccion
-		glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
-
-		//Asignar valores iniciales al programa
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		//Asignar valor variable de textura a usar.
-		glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
-
-		// Pasar las matrices
-		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translationMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotationMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-		glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
-
+		GameObject troll(compiledPrograms[0], glm::vec3(0,0,0), glm::vec3(0), glm::vec3(1, 1, 1));
+		GameObject troll2(compiledPrograms[0], glm::vec3(5,0,0), glm::vec3(0), glm::vec3(1, 1, 1));
+		
 		
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 			glfwPollEvents();
 
 				currentTime = glfwGetTime();
-				timer = currentTime % 6;
+				timer = currentTime % 6;			
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);			
 
+				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+				{
+					camera.position.y += 0.01f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+				{
+					camera.position.y -= 0.01f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+				{
+					camera.position.x -= 0.01f;
+				}
+				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+				{
+					camera.position.x += 0.01f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+				{
+					camera.position.z -= 0.01f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+				{
+					camera.position.z += 0.01f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
+				{
+					camera.fFov += 1.f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
+				{
+					camera.fFov += 1.f;
+				}
+
+				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+				{
+					camera.position.z += 0.01f;
+				}
+
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
+
+
+				troll.Start();
 				models[0].Render();
+
+				/*troll2.Start();
+				models[0].Render();*/
+
+				glClearColor(0.55f, 1.0f, 1.0f, 1.0f);
+				
+				// Definir la matriz de vista
+				glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
+				// Definir la matriz proyeccion
+				glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
+				// Pasar las matrices				
+				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+
 
 				//Definimos que queremos usar el VAO con los puntos
 				glFlush();

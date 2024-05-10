@@ -1,7 +1,7 @@
 #pragma once
 #include "Cube.h"
 
-class InputManager
+/*class InputManager
 {
     GameObject* cube;
     GameObject* pyramid;
@@ -87,3 +87,4 @@ public:
         }
     }       
 };
+*/
