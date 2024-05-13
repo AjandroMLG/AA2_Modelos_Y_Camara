@@ -30,10 +30,12 @@ public:
 		glUseProgram(program);
 
 		glUniform1i(glGetUniformLocation(program, "textureSampler"), 0);
-
-		glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateTranslationMatrix(position)));
-		glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateRotationMatrix(rotation, 0)));
-		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(MatrixTools::GenerateScaleMatrix(scale)));
+		glm::mat4 translateMatrix = MatrixTools::GenerateTranslationMatrix(position);
+		glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, 0);
+		glm::mat4 scaleMatrix = MatrixTools::GenerateScaleMatrix(scale);
+		glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translateMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotateMatrix));
+		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 
 		glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
 

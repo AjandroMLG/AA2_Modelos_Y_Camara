@@ -465,8 +465,8 @@ void main() {
 
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		GameObject troll(compiledPrograms[0], glm::vec3(0,0,0), glm::vec3(0), glm::vec3(1, 1, 1));
-		GameObject troll2(compiledPrograms[0], glm::vec3(5,0,0), glm::vec3(0), glm::vec3(1, 1, 1));
+		GameObject troll(compiledPrograms[0], glm::vec3(-1.5,0,-2), glm::vec3(0,1,0), glm::vec3(1, 1, 1));
+		GameObject troll2(compiledPrograms[0], glm::vec3(1.5,0,-2), glm::vec3(0,1,0), glm::vec3(1, 1, 1));
 		
 		
 		//Generamos el game loop
@@ -527,18 +527,18 @@ void main() {
 				troll.Start();
 				models[0].Render();
 
-				/*troll2.Start();
-				models[0].Render();*/
+				troll2.Start();
+				models[0].Render();
 
 				glClearColor(0.55f, 1.0f, 1.0f, 1.0f);
 				
-				// Definir la matriz de vista
+
 				glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
 				// Definir la matriz proyeccion
 				glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
 				// Pasar las matrices				
 				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));	
 
 
 				//Definimos que queremos usar el VAO con los puntos

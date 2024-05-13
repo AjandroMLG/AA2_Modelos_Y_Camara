@@ -25,13 +25,10 @@ Model::Model(const std::vector<float>& vertexs, const std::vector<float>& uvs, c
     glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(float), uvs.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-
-
-    // Definimos el VBO de las coordenadas normales
+    //Defino el VBO de las posiciones como activo, le paso los datos y lo configuro
     glBindBuffer(GL_ARRAY_BUFFER, this->normalsVBO);
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(float), normals.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-
 
     //Activamos ambos atributos para ser usados
     glEnableVertexAttribArray(0);
@@ -41,7 +38,6 @@ Model::Model(const std::vector<float>& vertexs, const std::vector<float>& uvs, c
     //Desvinculamos VAO y VBO
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
-
 }
 
 void Model::Render() const {
