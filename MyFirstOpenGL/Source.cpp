@@ -1,6 +1,7 @@
 #include "Cube.h"
 #include "InputManager.h"
 #include <iostream>
+#include <gtc/matrix_transform.hpp>
 #include <string>
 #include <fstream>
 #include "Model.h"
@@ -28,6 +29,19 @@ struct Camera {
 	float fNear = 0.1f;
 	float fFar = 100.f;
 };
+
+glm::mat4 GenerateTranslationMatrix(glm::vec3 _translation) {
+
+	return glm::translate(glm::mat4(1.f), _translation);
+}
+glm::mat4 GenerateRotationMatrix(glm::vec3 _axis, float _fDegrees) {
+
+	return glm::rotate(glm::mat4(1.f), glm::radians(_fDegrees), glm::normalize(_axis));
+}
+glm::mat4 GenerateScaleMatrix(glm::vec3 _scaleAxis) {
+
+	return glm::scale(glm::mat4(1.f), _scaleAxis);
+}
 
 #pragma region Settings
 void Resize_Window(GLFWwindow* window, int iFrameBufferWidth, int iFrameBufferHeight) {
@@ -103,8 +117,6 @@ GLuint LoadFragmentShader(const std::string& filePath) {
 		std::exit(EXIT_FAILURE);
 	}
 }
-
-
 GLuint LoadGeometryShader(const std::string& filePath) {
 
 	// Crear un vertex shader
@@ -143,7 +155,6 @@ GLuint LoadGeometryShader(const std::string& filePath) {
 		std::exit(EXIT_FAILURE);
 	}
 }
-
 GLuint LoadVertexShader(const std::string& filePath) {
 
 	// Crear un vertex shader
@@ -183,6 +194,7 @@ GLuint LoadVertexShader(const std::string& filePath) {
 	}
 
 }
+
 GLuint CreateProgram(const ShaderProgram& shaders) {
 
 	//Crear programa de la GPU
@@ -356,8 +368,7 @@ Model LoadOBJModel(const std::string& filePath) {
 }
 #pragma endregion
 
-
-GLFWwindow* InitialiceWindow()
+GLFWwindow* CreateWindow()
 {
 	//Inicializamos GLFW para gestionar ventanas e inputs
 	glfwInit();
@@ -367,51 +378,37 @@ GLFWwindow* InitialiceWindow()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
-	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "My Engine", NULL, NULL);
-	return window;
-}
 
-void InitialiceSettings(GLFWwindow* window)
-{
+	GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "My Engine", NULL, NULL);
+
 	//Asignamos función de callback para cuando el frame buffer es modificado
 	glfwSetFramebufferSizeCallback(window, Resize_Window);
 
 	//Definimos espacio de trabajo
 	glfwMakeContextCurrent(window);
 
-	//Permitimos a GLEW usar funcionalidades experimentales
-	glewExperimental = GL_TRUE;
-
+	return window; 
+}
+void ActiveCulling()
+{
 	//Activamos cull face
 	glEnable(GL_CULL_FACE);
 
 	//Indicamos lado del culling
 	glCullFace(GL_BACK);
+
+	//Indicamos lado del culling
+	glEnable(GL_DEPTH_TEST);
 }
-
-void CompilePrograms()
-{
-	//Compilar shaders
-	ShaderProgram trollProgram;
-	trollProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
-	trollProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
-	trollProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
-
-	//Compilar programa
-	compiledPrograms.push_back(CreateProgram(trollProgram));	
-}
-
-
 
 void main() {
 
 	//Definir semillas del rand según el tiempo
 	srand(static_cast<unsigned int>(time(NULL)));
-	float timer = 0;
-	int currentTime;
 
-	GLFWwindow* window = InitialiceWindow();
-	InitialiceSettings(window);	
+	GLFWwindow* window = CreateWindow(); 
+	glewExperimental = GL_TRUE;
+	ActiveCulling();
 
 	//Leer textura
 	int width, height, nrChannels;
@@ -420,135 +417,108 @@ void main() {
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {	
 
-		Camera camera;
+		glClearColor(0.f, 0.6f, 1.0f, 1.0f);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 		ShaderProgram myFirstProgram;
 		myFirstProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
 		myFirstProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
 		myFirstProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
-
-		CompilePrograms();
-
-		//Definimos color para limpiar el buffer de color
-
-		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
-		//Compìlar programa
+		
 		compiledPrograms.push_back(CreateProgram(myFirstProgram));
+		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
 
-		//Definimos canal de textura activo
+		Camera camera;
+
+		GameObject troll(compiledPrograms[0], glm::vec3(-1.5, 0, -2), glm::vec3(0, 1, 0), glm::vec3(0.7));
+		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, -2), glm::vec3(0, 320, 0), glm::vec3(1, 1, 1));
+
 		glActiveTexture(GL_TEXTURE0);
 
-		//Generar textura
 		GLuint textureID;
 		glGenTextures(1, &textureID);
-
-		//Vinculamos texture
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
-		//Configurar textura
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		//Cargar imagen a la textura
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureInfo);
-
-		//Generar mipmap
 		glGenerateMipmap(GL_TEXTURE_2D);
-
-		//Liberar memoria de la imagen cargada
 		stbi_image_free(textureInfo);
 
-		//Indicar a la tarjeta GPU que programa debe usar
 		glUseProgram(compiledPrograms[0]);
 
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
-		GameObject troll(compiledPrograms[0], glm::vec3(-1.5,0,-2), glm::vec3(0,1,0), glm::vec3(1, 1, 1));
-		GameObject troll2(compiledPrograms[0], glm::vec3(1.5,0,-2), glm::vec3(0,1,0), glm::vec3(1, 1, 1));
-		
-		
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
-			glfwPollEvents();
 
-				currentTime = glfwGetTime();
-				timer = currentTime % 6;			
+			glfwPollEvents();	
 
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			{
+				camera.position.y += 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			{
+				camera.position.y -= 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			{
+				camera.position.x -= 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			{
+				camera.position.x += 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+			{
+				camera.position.z -= 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+			{
+				camera.position.z += 0.01f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
+			{
+				camera.fFov += 1.f;
+				if (camera.fFov >= 179)
+					camera.fFov = 179
+			}
+			if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
+			{
+				camera.fFov -= 1.f;
+				if (camera.fFov < 1.f)
+					camera.fFov = 1.f;
+			}
+			if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
+			{
+				camera.position.z += 0.01f;
+			}
 
-				if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-				{
-					camera.position.y += 0.01f;
-				}
+			glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
+			// Definir la matriz proyeccion
+			glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
+			// Pasar las matrices				
+			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
+			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
 
-				if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-				{
-					camera.position.y -= 0.01f;
-				}
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
 
-				if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-				{
-					camera.position.x -= 0.01f;
-				}
-				if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-				{
-					camera.position.x += 0.01f;
-				}
+			troll.Start();
+			models[0].Render();
 
-				if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-				{
-					camera.position.z -= 0.01f;
-				}
+			troll2.Start();
+			models[0].Render();
 
-				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-				{
-					camera.position.z += 0.01f;
-				}
-
-				if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
-				{
-					camera.fFov += 1.f;
-				}
-
-				if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
-				{
-					camera.fFov += 1.f;
-				}
-
-				if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-				{
-					camera.position.z += 0.01f;
-				}
-
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
-
-
-				troll.Start();
-				models[0].Render();
-
-				troll2.Start();
-				models[0].Render();
-
-				glClearColor(0.55f, 1.0f, 1.0f, 1.0f);
-				
-
-				glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
-				// Definir la matriz proyeccion
-				glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
-				// Pasar las matrices				
-				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-				glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));	
-
-
-				//Definimos que queremos usar el VAO con los puntos
-				glFlush();
-				glfwSwapBuffers(window);				
+			glFlush();
+			glfwSwapBuffers(window);				
 		}
 		//Desactivar y eliminar programa
 		glUseProgram(0);
 		glDeleteProgram(compiledPrograms[0]);
-		glDeleteProgram(compiledPrograms[1]);
 	}
 	else {
 		std::cout << "Ha petao." << std::endl;
