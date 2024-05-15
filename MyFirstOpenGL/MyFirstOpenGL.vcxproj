@@ -29,6 +29,7 @@
     <None Include="MyFirstVertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="camera.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="InputManager.h" />

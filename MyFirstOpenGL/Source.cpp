@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include "Model.h"
+#include "camera.h"
 #include <sstream>
 #include <stb_image.h>
 
@@ -21,14 +22,7 @@ struct ShaderProgram {
 	GLuint fragmentShader = 0;
 };
 
-struct Camera {
-	glm::vec3 position = glm::vec3(0.0f, 1.0f, 5.0f);
-	glm::vec3 localVectorUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
-	float fFov = 45.f;
-	float fNear = 0.1f;
-	float fFar = 100.f;
-};
 
 glm::mat4 GenerateTranslationMatrix(glm::vec3 _translation) {
 
@@ -428,11 +422,12 @@ void main() {
 		compiledPrograms.push_back(CreateProgram(myFirstProgram));
 		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
 
-		Camera camera;
 
-		GameObject troll(compiledPrograms[0], glm::vec3(-1.5, 0, -2), glm::vec3(0, 1, 0), glm::vec3(0.7));
-		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, -2), glm::vec3(0, 320, 0), glm::vec3(1, 1, 1));
-
+		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0), glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
+		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 1), glm::vec3(0, 320, 0), glm::vec3(0.7));
+		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 1), glm::vec3(0, 40, 0), glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
+		Camera camera(compiledPrograms[0]);
+		
 		glActiveTexture(GL_TEXTURE0);
 
 		GLuint textureID;
@@ -459,33 +454,35 @@ void main() {
 
 			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 			{
-				camera.position.y += 0.01f;
+				camera.position.y += 0.1f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 			{
-				camera.position.y -= 0.01f;
+				camera.position.y -= 0.1f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 			{
-				camera.position.x -= 0.01f;
+				camera.position.x -= 0.1f;
+				camera.rotation.y += 1.0f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 			{
-				camera.position.x += 0.01f;
+				camera.position.x += 0.1f;
+				camera.rotation.y -= 1.0f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 			{
-				camera.position.z -= 0.01f;
+				camera.position.z -= 0.1f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
 			{
-				camera.position.z += 0.01f;
+				camera.position.z += 0.1f;
 			}
 			if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
 			{
 				camera.fFov += 1.f;
 				if (camera.fFov >= 179)
-					camera.fFov = 179
+					camera.fFov = 179;
 			}
 			if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
 			{
@@ -498,20 +495,22 @@ void main() {
 				camera.position.z += 0.01f;
 			}
 
-			glm::mat4 viewMatrix = glm::lookAt(camera.position, camera.position + glm::vec3(0.f, 0.f, -5.f), camera.localVectorUp);
-			// Definir la matriz proyeccion
-			glm::mat4 projectionMatrix = glm::perspective(glm::radians(camera.fFov), (float)WINDOW_WIDTH / (float)WINDOW_HEIGHT, camera.fNear, camera.fFar);
-			// Pasar las matrices				
-			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "view"), 1, GL_FALSE, glm::value_ptr(viewMatrix));
-			glUniformMatrix4fv(glGetUniformLocation(compiledPrograms[0], "projection"), 1, GL_FALSE, glm::value_ptr(projectionMatrix));
+			
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
+
+
+			camera.Film();
 
 			troll.Start();
 			models[0].Render();
 
 			troll2.Start();
 			models[0].Render();
+			troll3.Start();
+			models[0].Render();
+			
+			
 
 			glFlush();
 			glfwSwapBuffers(window);				
