@@ -405,8 +405,14 @@ void main() {
 	ActiveCulling();
 
 	//Leer textura
-	int width, height, nrChannels;
-	unsigned char* textureInfo = stbi_load("Assets/Textures/troll.png", &width, &height, &nrChannels, 0);
+	int trollWidth, trollHeight, trollNrChannels;
+	unsigned char* trollTextureInfo = stbi_load("Assets/Textures/troll.png", &trollWidth, &trollHeight, &trollNrChannels, 0);
+
+	int rockWidth, rockHeight, rockNrChannels;
+	unsigned char* rockTextureInfo = stbi_load("Assets/Textures/rock.png", &rockWidth, &rockHeight, &rockNrChannels, 0);
+
+
+
 
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {	
@@ -421,27 +427,47 @@ void main() {
 		
 		compiledPrograms.push_back(CreateProgram(myFirstProgram));
 		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
+		models.push_back(LoadOBJModel("Assets/Models/rock.obj"));
 
 
-		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0), glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
-		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 1), glm::vec3(0, 320, 0), glm::vec3(0.7));
-		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 1), glm::vec3(0, 40, 0), glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
+		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0),0, glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
+		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 1), glm::vec3(0, 1, 0),320, glm::vec3(0.7));
+		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 1), glm::vec3(0, 1, 0),40, glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
+
+		GameObject rock(compiledPrograms[0], glm::vec3(0, 0, 1), glm::vec3(1, 0, 0),-90, glm::vec3(0.6), glm::vec4(0.3, 0.3, 0.3, 1.0f));
+		GameObject rock1(compiledPrograms[0], glm::vec3(2,2.5,-2), glm::vec3(0, 0, 1),90, glm::vec3(0.6,1.5,1.1), glm::vec4(0.8, 0.8, 1, 1.0f));
 		Camera camera(compiledPrograms[0]);
 		
 		glActiveTexture(GL_TEXTURE0);
 
-		GLuint textureID;
-		glGenTextures(1, &textureID);
-		glBindTexture(GL_TEXTURE_2D, textureID);
+		GLuint trollTextureID;
+		glGenTextures(1, &trollTextureID);
+		glBindTexture(GL_TEXTURE_2D, trollTextureID);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, textureInfo);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, trollWidth, trollHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, trollTextureInfo);
 		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(textureInfo);
+		stbi_image_free(trollTextureInfo);
+
+
+		glActiveTexture(GL_TEXTURE1);
+
+		GLuint rockTextureID;
+		glGenTextures(1, &rockTextureID);
+		glBindTexture(GL_TEXTURE_2D, rockTextureID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rockWidth, rockHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, rockTextureInfo);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		stbi_image_free(rockTextureInfo);
 
 		glUseProgram(compiledPrograms[0]);
 
@@ -458,7 +484,7 @@ void main() {
 			}
 			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 			{
-				camera.position.y -= 0.1f;
+				camera.position.y -= 0.1f; 
 			}
 			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 			{
@@ -494,7 +520,6 @@ void main() {
 			{
 				camera.position.z += 0.01f;
 			}
-
 			
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
@@ -502,14 +527,19 @@ void main() {
 
 			camera.Film();
 
+			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 			troll.Start();
 			models[0].Render();
-
 			troll2.Start();
 			models[0].Render();
 			troll3.Start();
 			models[0].Render();
-			
+
+			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 1);
+			rock.Start();
+			models[1].Render();
+			rock1.Start();
+			models[1].Render();
 			
 
 			glFlush();

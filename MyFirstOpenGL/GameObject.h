@@ -15,12 +15,13 @@ public:
 
 	glm::vec3 position;
 	glm::vec3 rotation;
+	float rotationValue;
 	glm::vec3 scale;
 	
 	glm::vec4 color;
 
-	GameObject(GLuint program, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)) 
-		: program(program), position(position), rotation(rotation), scale(scale), color(color)
+	GameObject(GLuint program, glm::vec3 position, glm::vec3 rotation, float rotationValue, glm::vec3 scale, glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)) 
+		: program(program), position(position), rotation(rotation), scale(scale), color(color), rotationValue(rotationValue)
 	{
 		
 	}
@@ -29,10 +30,9 @@ public:
 	{
 		glUseProgram(program);
 
-		glUniform1i(glGetUniformLocation(program, "textureSampler"), 0);
 
 		glm::mat4 translateMatrix = MatrixTools::GenerateTranslationMatrix(position);
-		glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, rotation.y);
+		glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, rotationValue);
 		glm::mat4 scaleMatrix = MatrixTools::GenerateScaleMatrix(scale);
 
 		glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translateMatrix));

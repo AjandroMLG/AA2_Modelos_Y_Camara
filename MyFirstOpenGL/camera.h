@@ -14,7 +14,7 @@ public:
 	float fFar = 100.f;
 	float distance = 8.0f;
 
-	Camera(GLuint program) : GameObject(program, glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(1, 1, 1))
+	Camera(GLuint program) : GameObject(program, glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 1, 0.0f),90, glm::vec3(1, 1, 1))
 	{
 
 	}
