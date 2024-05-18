@@ -40,5 +40,6 @@ public:
 		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 
 		glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
+
 	}
 };

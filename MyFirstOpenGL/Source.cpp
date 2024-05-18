@@ -424,19 +424,29 @@ void main() {
 		myFirstProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
 		myFirstProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
 		myFirstProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
-		
 		compiledPrograms.push_back(CreateProgram(myFirstProgram));
+
+		ShaderProgram cubeProgram;
+		cubeProgram.vertexShader = LoadVertexShader("cubeVertexShader.glsl");
+		cubeProgram.geometryShader = LoadGeometryShader("cubeGeometryShader.glsl");
+		cubeProgram.fragmentShader = LoadFragmentShader("cubeFragmentShader.glsl");
+
+		compiledPrograms.push_back(CreateProgram(cubeProgram));
+
 		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
 		models.push_back(LoadOBJModel("Assets/Models/rock.obj"));
 
 
 		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0),0, glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
-		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 1), glm::vec3(0, 1, 0),320, glm::vec3(0.7));
-		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 1), glm::vec3(0, 1, 0),40, glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
+		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 0.5), glm::vec3(0, 1, 0),320, glm::vec3(0.7));
+		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 0.5), glm::vec3(0, 1, 0),40, glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
 
 		GameObject rock(compiledPrograms[0], glm::vec3(0, 0, 1), glm::vec3(1, 0, 0),-90, glm::vec3(0.6), glm::vec4(0.3, 0.3, 0.3, 1.0f));
 		GameObject rock1(compiledPrograms[0], glm::vec3(2,2.5,-2), glm::vec3(0, 0, 1),90, glm::vec3(0.6,1.5,1.1), glm::vec4(0.8, 0.8, 1, 1.0f));
 		Camera camera(compiledPrograms[0]);
+		Cube cube (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(5), glm::vec4(0.3, 1, 1, 1.0f));
+
+		InputManager inputs(camera,window);
 		
 		glActiveTexture(GL_TEXTURE0);
 
@@ -452,7 +462,6 @@ void main() {
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, trollWidth, trollHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, trollTextureInfo);
 		glGenerateMipmap(GL_TEXTURE_2D);
 		stbi_image_free(trollTextureInfo);
-
 
 		glActiveTexture(GL_TEXTURE1);
 
@@ -472,60 +481,19 @@ void main() {
 		glUseProgram(compiledPrograms[0]);
 
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
+		glUniform2f(glGetUniformLocation(compiledPrograms[1], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
 
-			glfwPollEvents();	
-
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-			{
-				camera.position.y += 0.1f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			{
-				camera.position.y -= 0.1f; 
-			}
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			{
-				camera.position.x -= 0.1f;
-				camera.rotation.y += 1.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			{
-				camera.position.x += 0.1f;
-				camera.rotation.y -= 1.0f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
-			{
-				camera.position.z -= 0.1f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-			{
-				camera.position.z += 0.1f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_COMMA) == GLFW_PRESS)
-			{
-				camera.fFov += 1.f;
-				if (camera.fFov >= 179)
-					camera.fFov = 179;
-			}
-			if (glfwGetKey(window, GLFW_KEY_PERIOD) == GLFW_PRESS)
-			{
-				camera.fFov -= 1.f;
-				if (camera.fFov < 1.f)
-					camera.fFov = 1.f;
-			}
-			if (glfwGetKey(window, GLFW_KEY_O) == GLFW_PRESS)
-			{
-				camera.position.z += 0.01f;
-			}
-			
+			glfwPollEvents();		
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);	
 
+			inputs.Update();
 
 			camera.Film();
+			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 			troll.Start();
@@ -541,9 +509,11 @@ void main() {
 			rock1.Start();
 			models[1].Render();
 			
+			cube.Update();
 
 			glFlush();
 			glfwSwapBuffers(window);				
+
 		}
 		//Desactivar y eliminar programa
 		glUseProgram(0);
