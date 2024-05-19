@@ -10,6 +10,7 @@ void Camera::Film( float dt)
 {
 	if (typeOfCamera == 0)
 	{
+		set = false;
 		float camX = distance * -sinf(rotation.x * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
 		float camY = distance * -sinf((rotation.y) * (3.141516 / 180));
 		float camZ = -distance * cosf((rotation.x) * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
@@ -24,6 +25,7 @@ void Camera::Film( float dt)
 	}
 	else if (typeOfCamera == 1)
 	{
+		set = false;
 		lookat = type1LookAt;
 		position = type1Position;
 		viewMatrix = glm::lookAt(position, lookat, localVectorUp);
@@ -31,6 +33,7 @@ void Camera::Film( float dt)
 	}
 	else if (typeOfCamera == 2)
 	{
+		set = false;
 		lookat = type2LookAt;
 		position = type2Position;
 		viewMatrix = glm::lookAt(position, lookat, localVectorUp);
