@@ -395,6 +395,15 @@ void ActiveCulling()
 	glEnable(GL_DEPTH_TEST);
 }
 
+void CreateCompiledProgram()
+{
+	ShaderProgram myFirstProgram;
+	myFirstProgram.vertexShader = LoadVertexShader("VertexShader.glsl");
+	myFirstProgram.geometryShader = LoadGeometryShader("GeometryShader.glsl");
+	myFirstProgram.fragmentShader = LoadFragmentShader("FragmentShader.glsl");
+	compiledPrograms.push_back(CreateProgram(myFirstProgram));
+}
+
 void main() {
 
 	//Definir semillas del rand según el tiempo
@@ -411,43 +420,35 @@ void main() {
 	int rockWidth, rockHeight, rockNrChannels;
 	unsigned char* rockTextureInfo = stbi_load("Assets/Textures/rock.png", &rockWidth, &rockHeight, &rockNrChannels, 0);
 
-
-
-
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {	
 
+		float deltaTime = 0.0f; 
+		float lastFrame = 0.0f; 
+
 		glClearColor(0.f, 0.6f, 1.0f, 1.0f);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		CreateCompiledProgram();	
 
-		ShaderProgram myFirstProgram;
-		myFirstProgram.vertexShader = LoadVertexShader("MyFirstVertexShader.glsl");
-		myFirstProgram.geometryShader = LoadGeometryShader("MyFirstGeometryShader.glsl");
-		myFirstProgram.fragmentShader = LoadFragmentShader("MyFirstFragmentShader.glsl");
-		compiledPrograms.push_back(CreateProgram(myFirstProgram));
-
-		ShaderProgram cubeProgram;
-		cubeProgram.vertexShader = LoadVertexShader("cubeVertexShader.glsl");
-		cubeProgram.geometryShader = LoadGeometryShader("cubeGeometryShader.glsl");
-		cubeProgram.fragmentShader = LoadFragmentShader("cubeFragmentShader.glsl");
-
-		compiledPrograms.push_back(CreateProgram(cubeProgram));
-
+		//MODELS
 		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
 		models.push_back(LoadOBJModel("Assets/Models/rock.obj"));
 
-
+		//GAMEOBJECTS
 		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0),0, glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
 		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 0.5), glm::vec3(0, 1, 0),320, glm::vec3(0.7));
 		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 0.5), glm::vec3(0, 1, 0),40, glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
 
 		GameObject rock(compiledPrograms[0], glm::vec3(0, 0, 1), glm::vec3(1, 0, 0),-90, glm::vec3(0.6), glm::vec4(0.3, 0.3, 0.3, 1.0f));
-		GameObject rock1(compiledPrograms[0], glm::vec3(2,2.5,-2), glm::vec3(0, 0, 1),90, glm::vec3(0.6,1.5,1.1), glm::vec4(0.8, 0.8, 1, 1.0f));
-		Camera camera(compiledPrograms[0]);
+		GameObject rock1(compiledPrograms[0], glm::vec3(2,2.5,-4), glm::vec3(0, 0, 1),90, glm::vec3(0.6,1.5,1.1), glm::vec4(0.8, 0.8, 1, 1.0f));
+
 		Cube cube (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(5), glm::vec4(0.3, 1, 1, 1.0f));
 
-		InputManager inputs(camera,window);
-		
+		Camera camera(compiledPrograms[0]);
+
+		InputManager inputs(camera,window);		
+
+		//TEXTURES
 		glActiveTexture(GL_TEXTURE0);
 
 		GLuint trollTextureID;
@@ -481,10 +482,13 @@ void main() {
 		glUseProgram(compiledPrograms[0]);
 
 		glUniform2f(glGetUniformLocation(compiledPrograms[0], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
-		glUniform2f(glGetUniformLocation(compiledPrograms[1], "windowSize"), WINDOW_WIDTH, WINDOW_HEIGHT);
 
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
+
+			float currentFrame = glfwGetTime();
+			deltaTime = currentFrame - lastFrame;
+			lastFrame = currentFrame;
 
 			glfwPollEvents();		
 
@@ -492,10 +496,11 @@ void main() {
 
 			inputs.Update();
 
-			camera.Film();
+			camera.Film(deltaTime);
 			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
+
 			troll.Start();
 			models[0].Render();
 			troll2.Start();
