@@ -1,7 +1,9 @@
 #include "Model.h"
 #include <iostream>
 
-Model::Model(const std::vector<float>& vertexs, const std::vector<float>& uvs, const std::vector<float>& normals) {
+Model::Model(const std::vector<float>& vertexs, const std::vector<float>& uvs, const std::vector<float>& normals, GLuint program, glm::vec3 position, glm::vec3 rotation, float rotationValue, glm::vec3 scale, glm::vec4 color)
+    : GameObject(program, position, rotation, rotationValue, scale, color)
+{
 
     //Almaceno la cantidad de vertices que habra
     this->numVertexs = vertexs.size() / 3;
@@ -41,6 +43,19 @@ Model::Model(const std::vector<float>& vertexs, const std::vector<float>& uvs, c
 }
 
 void Model::Render() const {
+
+    glUseProgram(program);
+
+
+    glm::mat4 translateMatrix = MatrixTools::GenerateTranslationMatrix(position);
+    glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, rotationValue);
+    glm::mat4 scaleMatrix = MatrixTools::GenerateScaleMatrix(scale);
+
+    glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translateMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotateMatrix));
+    glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+
+    glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
 
     //Vinculo su VAO para ser usado
     glBindVertexArray(this->VAO);

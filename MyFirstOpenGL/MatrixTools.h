@@ -11,4 +11,9 @@ public:
 	static glm::mat4 GenerateRotationMatrix(glm::vec3 axis, float fDegrees);
 
 	static glm::mat4 GenerateScaleMatrix(glm::vec3 scaleAxis);
+	
+	static int RandonNumberBetween(int min, int max)
+	{
+		return min + rand() % (max - min + 1);
+	}
 };

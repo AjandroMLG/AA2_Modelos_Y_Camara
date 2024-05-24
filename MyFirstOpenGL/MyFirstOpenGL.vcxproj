@@ -40,6 +40,8 @@
     <ClInclude Include="InputManager.h" />
     <ClInclude Include="MatrixTools.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelManager.h" />
+    <ClInclude Include="Scene.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

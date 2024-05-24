@@ -1,19 +1,17 @@
 #include "Cube.h"
 #include "InputManager.h"
-#include <iostream>
 #include <gtc/matrix_transform.hpp>
 #include <string>
-#include <fstream>
-#include "Model.h"
 #include "camera.h"
-#include <sstream>
 #include <stb_image.h>
+#include "Scene.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
 std::vector<GLuint> compiledPrograms;
 std::vector<Model> models;
+
 
 struct ShaderProgram {
 
@@ -22,20 +20,6 @@ struct ShaderProgram {
 	GLuint fragmentShader = 0;
 };
 
-
-
-glm::mat4 GenerateTranslationMatrix(glm::vec3 _translation) {
-
-	return glm::translate(glm::mat4(1.f), _translation);
-}
-glm::mat4 GenerateRotationMatrix(glm::vec3 _axis, float _fDegrees) {
-
-	return glm::rotate(glm::mat4(1.f), glm::radians(_fDegrees), glm::normalize(_axis));
-}
-glm::mat4 GenerateScaleMatrix(glm::vec3 _scaleAxis) {
-
-	return glm::scale(glm::mat4(1.f), _scaleAxis);
-}
 
 #pragma region Settings
 void Resize_Window(GLFWwindow* window, int iFrameBufferWidth, int iFrameBufferHeight) {
@@ -249,117 +233,7 @@ GLuint CreateProgram(const ShaderProgram& shaders) {
 	}
 }
 
-Model LoadOBJModel(const std::string& filePath) {
 
-	//Verifico archivo y si no puedo abrirlo cierro aplicativo
-	std::ifstream file(filePath);
-
-	if (!file.is_open()) {
-		std::cerr << "No se ha podido abrir el archivo: " << filePath << std::endl;
-		std::exit(EXIT_FAILURE);
-	}
-
-	//Variables lectura fichero
-	std::string line;
-	std::stringstream ss;
-	std::string prefix;
-	glm::vec3 tmpVec3;
-	glm::vec2 tmpVec2;
-
-	//Variables elemento modelo
-	std::vector<float> vertexs;
-	std::vector<float> vertexNormal;
-	std::vector<float> textureCoordinates;
-
-	//Variables temporales para algoritmos de sort
-	std::vector<float> tmpVertexs;
-	std::vector<float> tmpNormals;
-	std::vector<float> tmpTextureCoordinates;
-
-	//Recorremos archivo linea por linea
-	while (std::getline(file, line)) {
-
-		//Por cada linea reviso el prefijo del archivo que me indica que estoy analizando
-		ss.clear();
-		ss.str(line);
-		ss >> prefix;
-
-		//Estoy leyendo un vertice
-		if (prefix == "v") {
-
-			//Asumo que solo trabajo 3D así que almaceno XYZ de forma consecutiva
-			ss >> tmpVec3.x >> tmpVec3.y >> tmpVec3.z;
-
-			//Almaceno en mi vector de vertices los valores
-			tmpVertexs.push_back(tmpVec3.x);
-			tmpVertexs.push_back(tmpVec3.y);
-			tmpVertexs.push_back(tmpVec3.z);
-		}
-
-		//Estoy leyendo una UV (texture coordinate)
-		else if (prefix == "vt") {
-
-			//Las UVs son siempre imagenes 2D asi que uso el tmpvec2 para almacenarlas
-			ss >> tmpVec2.x >> tmpVec2.y;
-
-			//Almaceno en mi vector temporal las UVs
-			tmpTextureCoordinates.push_back(tmpVec2.x);
-			tmpTextureCoordinates.push_back(tmpVec2.y);
-
-		}
-
-		//Estoy leyendo una normal
-		else if (prefix == "vn") {
-
-			//Asumo que solo trabajo 3D así que almaceno XYZ de forma consecutiva
-			ss >> tmpVec3.x >> tmpVec3.y >> tmpVec3.z;
-
-			//Almaceno en mi vector temporal de normales las normales
-			tmpNormals.push_back(tmpVec3.x);
-			tmpNormals.push_back(tmpVec3.y);
-			tmpNormals.push_back(tmpVec3.z);
-
-		}
-
-		//Estoy leyendo una cara
-		else if (prefix == "f") {
-
-			int vertexData;
-			short counter = 0;
-
-			//Obtengo todos los valores hasta un espacio
-			while (ss >> vertexData) {
-
-				//En orden cada numero sigue el patron de vertice/uv/normal
-				switch (counter) {
-				case 0:
-					//Si es un vertice lo almaceno - 1 por el offset y almaceno dos seguidos al ser un vec3, salto 1 / y aumento el contador en 1
-					vertexs.push_back(tmpVertexs[(vertexData - 1) * 3]);
-					vertexs.push_back(tmpVertexs[((vertexData - 1) * 3) + 1]);
-					vertexs.push_back(tmpVertexs[((vertexData - 1) * 3) + 2]);
-					ss.ignore(1, '/');
-					counter++;
-					break;
-				case 1:
-					//Si es un uv lo almaceno - 1 por el offset y almaceno dos seguidos al ser un vec2, salto 1 / y aumento el contador en 1
-					textureCoordinates.push_back(tmpTextureCoordinates[(vertexData - 1) * 2]);
-					textureCoordinates.push_back(tmpTextureCoordinates[((vertexData - 1) * 2) + 1]);
-					ss.ignore(1, '/');
-					counter++;
-					break;
-				case 2:
-					//Si es una normal la almaceno - 1 por el offset y almaceno tres seguidos al ser un vec3, salto 1 / y reinicio
-					vertexNormal.push_back(tmpNormals[(vertexData - 1) * 3]);
-					vertexNormal.push_back(tmpNormals[((vertexData - 1) * 3) + 1]);
-					vertexNormal.push_back(tmpNormals[((vertexData - 1) * 3) + 2]);
-					counter = 0;
-					break;
-				}
-			}
-		}
-	}
-	return Model(vertexs, textureCoordinates, vertexNormal);
-}
 #pragma endregion
 
 GLFWwindow* CreateWindow()
@@ -408,7 +282,6 @@ void main() {
 
 	//Definir semillas del rand según el tiempo
 	srand(static_cast<unsigned int>(time(NULL)));
-
 	GLFWwindow* window = CreateWindow(); 
 	glewExperimental = GL_TRUE;
 	ActiveCulling();
@@ -429,19 +302,10 @@ void main() {
 		glClearColor(0.f, 0.6f, 1.0f, 1.0f);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		CreateCompiledProgram();	
+		Scene sceneManager(compiledPrograms);
 
 		//MODELS
-		models.push_back(LoadOBJModel("Assets/Models/troll.obj"));
-		models.push_back(LoadOBJModel("Assets/Models/rock.obj"));
-
-		//GAMEOBJECTS
-		GameObject troll(compiledPrograms[0], glm::vec3(0, 0, -2), glm::vec3(0, 1, 0),0, glm::vec3(0.7), glm::vec4(1, 0.3, 0.3, 1.0f));
-		GameObject troll2(compiledPrograms[0], glm::vec3(1.5, 0, 0.5), glm::vec3(0, 1, 0),320, glm::vec3(0.7));
-		GameObject troll3(compiledPrograms[0], glm::vec3(-1.5, 0, 0.5), glm::vec3(0, 1, 0),40, glm::vec3(0.7), glm::vec4(0.3, 0.3, 1, 1.0f));
-
-		GameObject rock(compiledPrograms[0], glm::vec3(0, 0, 1), glm::vec3(1, 0, 0),-90, glm::vec3(0.6), glm::vec4(0.3, 0.3, 0.3, 1.0f));
-		GameObject rock1(compiledPrograms[0], glm::vec3(2,2.5,-4), glm::vec3(0, 0, 1),90, glm::vec3(0.6,1.5,1.1), glm::vec4(0.8, 0.8, 1, 1.0f));
-
+		models = sceneManager.GenerateMap(10);
 		Cube cube (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(5), glm::vec4(0.3, 1, 1, 1.0f));
 
 		Camera camera(compiledPrograms[0]);
@@ -501,18 +365,12 @@ void main() {
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 
-			troll.Start();
-			models[0].Render();
-			troll2.Start();
-			models[0].Render();
-			troll3.Start();
-			models[0].Render();
+			for (Model mod : models)
+			{
+				mod.Render();
+			}
 
-			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 1);
-			rock.Start();
-			models[1].Render();
-			rock1.Start();
-			models[1].Render();
+			
 			
 			cube.Update();
 
