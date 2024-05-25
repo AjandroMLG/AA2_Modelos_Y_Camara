@@ -46,7 +46,6 @@ void Model::Render() const {
 
     glUseProgram(program);
 
-
     glm::mat4 translateMatrix = MatrixTools::GenerateTranslationMatrix(position);
     glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, rotationValue);
     glm::mat4 scaleMatrix = MatrixTools::GenerateScaleMatrix(scale);

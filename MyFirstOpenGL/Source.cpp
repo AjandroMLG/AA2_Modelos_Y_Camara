@@ -308,7 +308,7 @@ void main() {
 		//MODELS
 		models = sceneManager.GenerateMap(1);
 		Cube sun (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
-		Cube moon (compiledPrograms[0], glm::vec3(0, 2.5, -0), glm::vec3(0, -180, 0), 0, glm::vec3(1), glm::vec4(0, 0, 0, 1.0f));
+		Cube moon (compiledPrograms[0], glm::vec3(0, 2.5, -0), glm::vec3(0, -180, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
 
 		Camera camera(compiledPrograms[0]);
 
@@ -366,12 +366,14 @@ void main() {
 			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
+			glUniform4fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(sun.position));
 
+		
+			sun.Update(deltaTime);
 			for (Model mod : models)
 			{
 				mod.Render();
-			}			
-			sun.Update(deltaTime);
+			}
 			moon.Update(deltaTime);
 
 			glFlush();

@@ -73,6 +73,8 @@ void Cube::Update(float dt)
 		glUniformMatrix4fv(glGetUniformLocation(program, "translationMatrix"), 1, GL_FALSE, glm::value_ptr(translateMatrix));
 		glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotateMatrix));
 		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
+		glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
+
 
 		glBindVertexArray(vaoPuntos);
 

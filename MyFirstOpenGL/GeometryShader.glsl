@@ -17,10 +17,10 @@ uniform mat4 scaleMatrix;
 uniform mat4 view;
 uniform mat4 projection;
 
-
 void main(){
-	mat4 model = translationMatrix * rotationMatrix * scaleMatrix;
 
+    mat4 model = translationMatrix * rotationMatrix * scaleMatrix;
+	
 	primitivePosition = model * ((gl_in[0].gl_Position + gl_in[1].gl_Position + gl_in[2].gl_Position) * 0.33); 
 
 	for(int i = 0; i < gl_in.length(); i++){
@@ -31,6 +31,6 @@ void main(){
 
 		EmitVertex();
 	}
-
+		
 	EndPrimitive();
 }
