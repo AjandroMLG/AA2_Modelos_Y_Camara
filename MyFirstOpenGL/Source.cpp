@@ -278,6 +278,7 @@ void CreateCompiledProgram()
 	compiledPrograms.push_back(CreateProgram(myFirstProgram));
 }
 
+
 void main() {
 
 	//Definir semillas del rand según el tiempo
@@ -368,10 +369,7 @@ void main() {
 			for (Model mod : models)
 			{
 				mod.Render();
-			}
-
-			
-			
+			}			
 			cube.Update();
 
 			glFlush();

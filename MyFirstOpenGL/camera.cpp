@@ -2,7 +2,7 @@
 
 Camera::Camera(GLuint program) : GameObject(program, glm::vec3(0.0f, 1.0f, 5.0f), glm::vec3(0.0f, 1, 0.0f), 0, glm::vec3(1, 1, 1))
 {
-	typeOfCamera = 0;
+	typeOfCamera = 1;
 	orbitVelocity = 20.0f;
 }
 
@@ -23,50 +23,18 @@ void Camera::Film( float dt)
 		viewMatrix = glm::lookAt(type0Position + glm::vec3(camY, camX, camZ), lookat, localVectorUp);
 		projectionMatrix = glm::perspective(glm::radians(fFov), (float)640 / (float)480, fNear, fFar);
 	}
-	else if (typeOfCamera == 1)
+	if (typeOfCamera == 1)
 	{
-		set = false;
-		lookat = type1LookAt;
-		position = type1Position;
-		viewMatrix = glm::lookAt(position, lookat, localVectorUp);
+		viewMatrix = glm::lookAt(position, position + front, localVectorUp);
 		projectionMatrix = glm::perspective(glm::radians(fFov), (float)640 / (float)480, fNear, fFar);
 	}
-	else if (typeOfCamera == 2)
-	{
-		set = false;
-		lookat = type2LookAt;
-		position = type2Position;
-		viewMatrix = glm::lookAt(position, lookat, localVectorUp);
-		projectionMatrix = glm::perspective(glm::radians(fFov), (float)640 / (float)480, fNear, fFar);
-	}
-	else if (typeOfCamera == 3)
-	{
-		if (!set)
-		{
-			lookat = type3LookAt;
-			position = type3Position;
-			set = true;
-		}
-
-		position.z -= zMovement * dt;
-		fFov += fFovVelocity * dt;
-
-		viewMatrix = glm::lookAt(position, lookat, localVectorUp);
-		projectionMatrix = glm::perspective(glm::radians(fFov), (float)640 / (float)480, fNear, fFar);
-		if (position.z <= lookat.z)
-		{
-			fFov = 45;
-			typeOfCamera = 0;
-			set = false;
-		}
-	}
-
 }
 
 void Camera::ChangeCamera(int value)
 {
 	typeOfCamera = value;
 }
+
 
 void Camera::Update(GLuint actualProgram)
 {
