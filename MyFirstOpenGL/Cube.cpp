@@ -52,12 +52,20 @@ Cube::Cube(GLuint program, glm::vec3 position, glm::vec3 rotation, float rotatio
 	glBindVertexArray(0);
 }
 
-void Cube::Update()
+void Cube::Update(float dt)
 {
 	{
 		glUseProgram(program);
 		glBindVertexArray(vaoPuntos);
 
+
+		float camX = distance * -sinf(rotation.x * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
+		float camY = distance * -sinf((rotation.y) * (3.141516 / 180));
+		float camZ = -distance * cosf((rotation.x) * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
+
+		rotation.y += orbitVelocity * dt;
+
+		position = glm::vec3(camZ, camY, camX);
 		glm::mat4 translateMatrix = MatrixTools::GenerateTranslationMatrix(position);
 		glm::mat4 rotateMatrix = MatrixTools::GenerateRotationMatrix(rotation, rotationValue);
 		glm::mat4 scaleMatrix = MatrixTools::GenerateScaleMatrix(scale);

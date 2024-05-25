@@ -40,6 +40,12 @@ void InputManager::Update()
     }
     glfwGetCursorPos(window, &xPos, &yPos);
 
+    if (camera.firstMouse) {
+        camera.lastX = xPos;
+        camera.lastY = yPos;
+        camera.firstMouse = false;
+    }
+
     float xoffset = xPos - camera.lastX;
     float yoffset = camera.lastY - yPos; // Invertido porque los sistemas de coordenadas de Y van al revés
     camera.lastX = xPos;

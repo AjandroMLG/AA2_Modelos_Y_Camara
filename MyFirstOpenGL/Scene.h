@@ -30,7 +30,7 @@ public:
 	{
 		for (int i = 0; i < amount; i++)
 		{
-			models.push_back(ModelManager::LoadOBJModel("Assets/Models/troll.obj", compiledPrograms[0],spawnPositions[MatrixTools::RandonNumberBetween(0, spawnPositions.size() - 1)], glm::vec3(0, 1, 0), 0, glm::vec3(0.7), glm::vec4(1, 1, 1, 1.0f)));
+			models.push_back(ModelManager::LoadOBJModel("Assets/Models/clank.obj", compiledPrograms[0],spawnPositions[MatrixTools::RandonNumberBetween(0, spawnPositions.size() - 1)], glm::vec3(0, 1, 0), 0, glm::vec3(0.7f), glm::vec4(1, 1, 1, 1.0f)));
 		}
 		return models;
 	}
