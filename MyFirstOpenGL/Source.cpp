@@ -289,7 +289,7 @@ void main() {
 
 	//Leer textura
 	int trollWidth, trollHeight, trollNrChannels;
-	unsigned char* trollTextureInfo = stbi_load("Assets/Textures/clank.png", &trollWidth, &trollHeight, &trollNrChannels, 0);
+	unsigned char* trollTextureInfo = stbi_load("Assets/Textures/troll.png", &trollWidth, &trollHeight, &trollNrChannels, 0);
 
 	int rockWidth, rockHeight, rockNrChannels;
 	unsigned char* rockTextureInfo = stbi_load("Assets/Textures/rock.png", &rockWidth, &rockHeight, &rockNrChannels, 0);
@@ -308,7 +308,6 @@ void main() {
 		//MODELS
 		models = sceneManager.GenerateMap(1);
 		Cube sun (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
-		Cube moon (compiledPrograms[0], glm::vec3(0, 2.5, -0), glm::vec3(0, -180, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
 
 		Camera camera(compiledPrograms[0]);
 
@@ -366,7 +365,7 @@ void main() {
 			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
-			glUniform4fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(sun.position));
+			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(sun.position));
 
 		
 			sun.Update(deltaTime);
@@ -374,7 +373,6 @@ void main() {
 			{
 				mod.Render();
 			}
-			moon.Update(deltaTime);
 
 			glFlush();
 			glfwSwapBuffers(window);				

@@ -30,7 +30,7 @@ public:
 	{
 		for (int i = 0; i < amount; i++)
 		{
-			models.push_back(ModelManager::LoadOBJModel("Assets/Models/clank.obj", compiledPrograms[0],spawnPositions[0], glm::vec3(0, 1, 0), 0, glm::vec3(0.7f), glm::vec4(0.5, 0.5, 0.5, 1.0f)));
+			models.push_back(ModelManager::LoadOBJModel("Assets/Models/troll.obj", compiledPrograms[0],spawnPositions[0], glm::vec3(0, 1, 0), 0, glm::vec3(0.7f), glm::vec4(0.5, 0.5, 0.5, 1.0f)));
 		}
 		return models;
 	}

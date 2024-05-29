@@ -20,6 +20,5 @@ void main() {
         float sourceLightAngle = dot(lineToLight, normalsFragmentShader.xyz); 
 
 
-        fragColor =  vec4(baseColor.rgb * sourceLightAngle, 1.0) * ambientColor; 
-
+        fragColor =  vec4(baseColor.rgb * ambientColor.rgb, 1.0) * sourceLightAngle; 
 }
