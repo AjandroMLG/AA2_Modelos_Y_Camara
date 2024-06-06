@@ -54,7 +54,6 @@ void Model::Render() const {
     glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotateMatrix));
     glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 
-    glUniform4fv(glGetUniformLocation(program, "ambientColor"), 1, glm::value_ptr(color));
 
     //Vinculo su VAO para ser usado
     glBindVertexArray(this->VAO);

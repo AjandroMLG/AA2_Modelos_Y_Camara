@@ -31,6 +31,7 @@
   <ItemGroup>
     <None Include="FragmentShader.glsl" />
     <None Include="GeometryShader.glsl" />
+    <None Include="SunFragmentShader.glsl" />
     <None Include="VertexShader.glsl" />
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +43,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="TimeManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

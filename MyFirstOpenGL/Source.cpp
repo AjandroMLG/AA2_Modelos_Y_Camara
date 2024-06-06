@@ -5,6 +5,7 @@
 #include "camera.h"
 #include <stb_image.h>
 #include "Scene.h"
+#include "TimeManager.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
@@ -276,6 +277,13 @@ void CreateCompiledProgram()
 	myFirstProgram.geometryShader = LoadGeometryShader("GeometryShader.glsl");
 	myFirstProgram.fragmentShader = LoadFragmentShader("FragmentShader.glsl");
 	compiledPrograms.push_back(CreateProgram(myFirstProgram));
+
+
+	ShaderProgram sunProgram;
+	sunProgram.vertexShader = LoadVertexShader("VertexShader.glsl");
+	sunProgram.geometryShader = LoadGeometryShader("GeometryShader.glsl");
+	sunProgram.fragmentShader = LoadFragmentShader("SunFragmentShader.glsl");
+	compiledPrograms.push_back(CreateProgram(sunProgram));
 }
 
 
@@ -308,7 +316,7 @@ void main() {
 		//MODELS
 		models = sceneManager.GenerateMap(1);
 		Cube sun (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
-
+		TimeManager time;
 		Camera camera(compiledPrograms[0]);
 
 		InputManager inputs(camera,window);		
@@ -350,10 +358,8 @@ void main() {
 
 		//Generamos el game loop
 		while (!glfwWindowShouldClose(window)) {
-
 			float currentFrame = glfwGetTime();
-			deltaTime = currentFrame - lastFrame;
-			lastFrame = currentFrame;
+			time.Update(currentFrame);		
 
 			glfwPollEvents();		
 
@@ -361,14 +367,14 @@ void main() {
 
 			inputs.Update();
 
-			camera.Film(deltaTime);
+			camera.Film(time.deltaTime);
 			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(sun.position));
 
 		
-			sun.Update(deltaTime);
+			sun.Update(time.deltaTime);
 			for (Model mod : models)
 			{
 				mod.Render();
