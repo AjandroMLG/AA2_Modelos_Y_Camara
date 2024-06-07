@@ -120,7 +120,7 @@ public:
 				}
 			}
 		}
-		Model model(vertexs, textureCoordinates, vertexNormal, program, position, glm::vec3(0,1,0), MatrixTools::RandonNumberBetween(0,360), glm::vec3(MatrixTools::RandomNumberBetweenFloat(0,1)), color);
+		Model model(vertexs, textureCoordinates, vertexNormal, program, position, glm::vec3(0,1,0), MatrixTools::RandonNumberBetween(0,360), glm::vec3(MatrixTools::RandomNumberBetweenFloat(1,1.2f)), color);
 		return model;
 	}
 };

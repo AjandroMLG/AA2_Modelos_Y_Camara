@@ -59,52 +59,50 @@ void Cube::Update(float dt)
 	{
 		glUseProgram(program);
 		glBindVertexArray(vaoPuntos);
-
-
+		glm::vec3 positionN = normalize(position);
+		
 		float camX = distance * -sinf(rotation.x * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
 		float camY = distance * -sinf((rotation.y) * (3.141516 / 180));
 		float camZ = -distance * cosf((rotation.x) * (3.141516 / 180)) * cosf((rotation.y) * (3.141516 / 180));
-
+		
 		rotation.y += orbitVelocity * dt;
 
 		position = glm::vec3(camZ, camY, camX);
-		// Calcular el ángulo polar
-		float angle = atan2(camY, camX);
-
-		// Ajustar el ángulo para que esté entre 0 y 2*PI
-		if (angle < 0) {
-			angle += 2 * 3.141516f;
-		}
+		
+		
 
 		// Detección del cuadrante y cálculo de alpha
 		std::string cuadrante;
 		float alpha = 0.0f;
 
-		if (camY >= 0) {
-			if (angle < 3.141516f / 2) {
+		if (position.y >= 0) {
+			if (position.x > 0) {
+				 alpha = positionN.x;
 				cuadrante = "Arriba Derecha";
-				alpha =  0.5f + (angle / (3.141516f / 2)) * 0.5f;
-				colorA = colors[0];
-				colorB = colors[1];
-			}
-			else {
-				cuadrante = "Arriba Izquierda";
-				alpha =  1.0f - (angle / (3.141516f / 2) / (3.141516f / 2)) * 0.5f;
 				colorA = colors[1];
 				colorB = colors[2];
+			}
+			else {
+				 alpha = positionN.y;
+
+				cuadrante = "Arriba Izquierda";
+				colorA = colors[0];
+				colorB = colors[1];
 			}
 		}
 		else {
 			cuadrante = "Abajo";
-			if (angle >= 3.141516f && angle < 2 * 3.141516f) {
-				alpha = (angle - 3.141516f) / (3.141516f);
+			if (position.x < 0) {
+				 alpha = -1 * positionN.x;
+
 				colorA = colors[2];
 				colorB = colors[0];
 			}
-			else if (angle >= 0 && angle < 3.141516f / 2) {
-				alpha = (3.141516f + angle) / (3.141516f);
-				colorA = colors[0];
-				colorB = colors[0];
+			else  {
+				 alpha = -1 * positionN.y;
+
+				colorA = colors[2];
+				colorB = colors[2];
 			}
 		}
 
@@ -119,8 +117,10 @@ void Cube::Update(float dt)
 		glUniformMatrix4fv(glGetUniformLocation(program, "rotationMatrix"), 1, GL_FALSE, glm::value_ptr(rotateMatrix));
 		glUniformMatrix4fv(glGetUniformLocation(program, "scaleMatrix"), 1, GL_FALSE, glm::value_ptr(scaleMatrix));
 		glUniform3fv(glGetUniformLocation(program, "colorA"), 1, glm::value_ptr(colorA));
-		glUniform3fv(glGetUniformLocation(program, "colorB"), 1, glm::value_ptr(colorA));
+		glUniform3fv(glGetUniformLocation(program, "colorB"), 1, glm::value_ptr(colorB));
 		glUniform1f(glGetUniformLocation(program, "colorInterpolation"), alpha);
+		
+
 
 		glBindVertexArray(vaoPuntos);
 

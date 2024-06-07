@@ -2,11 +2,17 @@
 
 uniform vec2 windowSize;
 uniform sampler2D textureSampler;
+
 uniform float colorInterpolation;
 uniform vec3 colorA;
 uniform vec3 colorB;
-uniform vec3 sourceLight;
+
+uniform bool activeLight;
+
+uniform vec3 cameraPosition;
 uniform vec3 forwardCamera;
+
+uniform vec3 sunPosition;
 
 in vec2 uvsFragmentShader;
 in vec4 normalsFragmentShader;
@@ -14,42 +20,44 @@ in vec4 primitivePosition;
 
 out vec4 fragColor;
 
+int flashLightDistance = 20;
+
 void main() {
         
         vec2 adjustedTexCoord = vec2(uvsFragmentShader.x, 1.0 - uvsFragmentShader.y);
         vec4 baseColor = texture(textureSampler, adjustedTexCoord);  
+        vec3 ambientColor = mix(colorA, colorB, colorInterpolation);
 
-        vec3 lineToLight = normalize(sourceLight - primitivePosition.xyz); 
-        float sourceLightAngle = dot(lineToLight, normalize(-forwardCamera)); 
-        vec3 ambientColor = vec3(1,1,1);
+        vec4 color;
 
-        float distance = length(primitivePosition.xyz - sourceLight);
-        float intensity = 1 / (distance * distance);
+        //OrbitLight
+        vec3 sunToObject = normalize(sunPosition - primitivePosition.xyz);
+        float sunLightAngle = dot(sunToObject, normalsFragmentShader.xyz);
+
+        if(sunLightAngle < 0.15f)
+        sunLightAngle = 0.15f;
+
+        float lightForce = sunLightAngle * 3;
+
+        color = vec4(baseColor.rgb * ambientColor.rgb * lightForce, 1.0);
+
+        //FlashLight
+        if(activeLight)
+        {
+             vec3 lineToLight = normalize(cameraPosition - primitivePosition.xyz); 
+            float angleFlashLight = dot(lineToLight, normalize(-forwardCamera)); 
+
+            float distance = length(primitivePosition.xyz - cameraPosition);
+            float intensity = 1 / (distance * distance);
         
-        float distance2D = length(primitivePosition.xy - sourceLight.xy);
+            float distance2D = length(primitivePosition.xy - cameraPosition.xy);            
 
-        float multy = 2; 
-   
-        if(distance2D < 0.6)
-        {
-            multy *= 4; 
+            float spotlightEffect = smoothstep(cos(radians(20)), cos(radians(10)), angleFlashLight) * 0.9;
+      
+            color += vec4(baseColor.rgb * spotlightEffect * intensity * flashLightDistance, 1.0);
         }
-        else if(distance2D < 0.8)
-        {
-            multy *= 2;
-        }
+       
 
-
-        if(sourceLightAngle > 0.976 && sourceLightAngle < 0.986)
-        fragColor =  vec4(baseColor.rgb * ambientColor.rgb, 0.3) * (sourceLightAngle / 5 * multy * intensity); 
-        else if(sourceLightAngle > 0.996)
-        {
-          fragColor =  vec4(baseColor.rgb * ambientColor.rgb, 0.3) * (sourceLightAngle * multy * intensity); 
-        }
-         else if(sourceLightAngle > 0.986 && sourceLightAngle < 0.996)
-        {
-          fragColor =  vec4(baseColor.rgb * ambientColor.rgb, 0.3) * (sourceLightAngle/ 2 * multy * intensity); 
-        }
-
-
+        fragColor = vec4(color.rgb, 1); 
 }
+

@@ -6,6 +6,11 @@ InputManager::InputManager(Camera& camera, GLFWwindow* window) : camera(camera),
     keyPressed = false;
 }
 
+bool InputManager::GetFlash()
+{
+    return flashLight;
+}
+
 void InputManager::Update()
 {
     if (!keyPressed)
@@ -27,6 +32,13 @@ void InputManager::Update()
         {
             camera.GoRight();
         }
+
+        if (glfwGetKey(window, GLFW_KEY_F) == GLFW_PRESS)
+        {
+            flashLight = !flashLight;
+            keyPressed = true;
+
+        }
     }
     else {
         // Aquí se establece keyPressed como false solo si ninguna tecla está presionada,3#
@@ -34,7 +46,8 @@ void InputManager::Update()
             glfwGetKey(window, GLFW_KEY_W) != GLFW_PRESS &&
             glfwGetKey(window, GLFW_KEY_S) != GLFW_PRESS &&
             glfwGetKey(window, GLFW_KEY_A) != GLFW_PRESS &&
-            glfwGetKey(window, GLFW_KEY_D) != GLFW_PRESS) {
+            glfwGetKey(window, GLFW_KEY_D) != GLFW_PRESS &&
+            glfwGetKey(window, GLFW_KEY_F) != GLFW_PRESS) {
             keyPressed = false;
         }
     }
