@@ -6,16 +6,16 @@
 
 class Cube : public GameObject
 {
-	GLuint vaoPuntos, vboPuntos;
-	float distance = 6.0f;
-	float orbitVelocity = 20.0f;
+	float distance;
+	float orbitVelocity;
 	glm::vec3 colorA;
 	glm::vec3 colorB;
-	bool day;
-	std::vector<glm::vec3> colors{ glm::vec3(0.0, 0.129, 0.306) , glm::vec3(1.0, 0.819, 0.384) , glm::vec3(0.0, 0.066, 0.266) };
+	std::vector<glm::vec3> colors;
+	bool day, sun;
 public:
-	Cube(GLuint program, glm::vec3 position, glm::vec3 rotation, float rotationValue, glm::vec3 scale, glm::vec4 color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	Cube(GLuint program, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale, Model model, bool sun);
 
-	void Update(float dt);
-	
+	virtual void Update(float dt) override;
+
+	void Start();	
 };

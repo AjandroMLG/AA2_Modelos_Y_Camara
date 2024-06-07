@@ -6,12 +6,13 @@
 #include <stb_image.h>
 #include "Scene.h"
 #include "TimeManager.h"
+#include "GameObject.h"
 
 #define WINDOW_WIDTH 640
 #define WINDOW_HEIGHT 480
 
 std::vector<GLuint> compiledPrograms;
-std::vector<Model> models;
+std::vector<GameObject*> gameObjects;
 
 
 struct ShaderProgram {
@@ -266,7 +267,7 @@ void ActiveCulling()
 	//Indicamos lado del culling
 	glCullFace(GL_BACK);
 
-	//Indicamos lado del culling
+	//Indicamos lado del culling 
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -277,13 +278,6 @@ void CreateCompiledProgram()
 	myFirstProgram.geometryShader = LoadGeometryShader("GeometryShader.glsl");
 	myFirstProgram.fragmentShader = LoadFragmentShader("FragmentShader.glsl");
 	compiledPrograms.push_back(CreateProgram(myFirstProgram));
-
-
-	ShaderProgram sunProgram;
-	sunProgram.vertexShader = LoadVertexShader("VertexShader.glsl");
-	sunProgram.geometryShader = LoadGeometryShader("GeometryShader.glsl");
-	sunProgram.fragmentShader = LoadFragmentShader("SunFragmentShader.glsl");
-	compiledPrograms.push_back(CreateProgram(sunProgram));
 }
 
 
@@ -293,14 +287,7 @@ void main() {
 	srand(static_cast<unsigned int>(time(NULL)));
 	GLFWwindow* window = CreateWindow(); 
 	glewExperimental = GL_TRUE;
-	ActiveCulling();
-
-	//Leer textura
-	int trollWidth, trollHeight, trollNrChannels;
-	unsigned char* trollTextureInfo = stbi_load("Assets/Textures/troll.png", &trollWidth, &trollHeight, &trollNrChannels, 0);
-
-	int rockWidth, rockHeight, rockNrChannels;
-	unsigned char* rockTextureInfo = stbi_load("Assets/Textures/rock.png", &rockWidth, &rockHeight, &rockNrChannels, 0);
+	ActiveCulling();	
 
 	//Inicializamos GLEW y controlamos errores
 	if (glewInit() == GLEW_OK) {	
@@ -314,43 +301,16 @@ void main() {
 		Scene sceneManager(compiledPrograms);
 
 		//MODELS
-		models = sceneManager.GenerateMap(1);
-		Cube sun (compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), 0, glm::vec3(1), glm::vec4(1, 1, 1, 1.0f));
+		MODEL_MANAGER.InitializeModels();
+
+		//GameObjects
+		gameObjects = sceneManager.GenerateMap(5);
+		gameObjects.push_back(new Cube(compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, 0, 0), glm::vec3(1.5), MODEL_MANAGER.models[3], true));
+		gameObjects.push_back(new Cube(compiledPrograms[0], glm::vec3(0, -2.5, -0), glm::vec3(1, -180, 0), glm::vec3(0.75), MODEL_MANAGER.models[3], false));
 		TimeManager time;
-		Camera camera(compiledPrograms[0]);
-
-		InputManager inputs(camera,window);		
-
-		//TEXTURES
-		glActiveTexture(GL_TEXTURE0);
-
-		GLuint trollTextureID;
-		glGenTextures(1, &trollTextureID);
-		glBindTexture(GL_TEXTURE_2D, trollTextureID);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, trollWidth, trollHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, trollTextureInfo);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(trollTextureInfo);
-
-		glActiveTexture(GL_TEXTURE1);
-
-		GLuint rockTextureID;
-		glGenTextures(1, &rockTextureID);
-		glBindTexture(GL_TEXTURE_2D, rockTextureID);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, rockWidth, rockHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, rockTextureInfo);
-		glGenerateMipmap(GL_TEXTURE_2D);
-		stbi_image_free(rockTextureInfo);
+		Camera camera(compiledPrograms[0], MODEL_MANAGER.models[0]);
+		InputManager inputs(camera,window);	
+		
 
 		glUseProgram(compiledPrograms[0]);
 
@@ -369,19 +329,15 @@ void main() {
 
 			camera.Film(time.deltaTime);
 			camera.Update(compiledPrograms[0]);
-			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "sunPosition"), 1, glm::value_ptr(sun.position));
-			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
 			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "cameraPosition"), 1, glm::value_ptr(camera.position));
 			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "forwardCamera"), 1, glm::value_ptr(camera.front));
 			glUniform1f(glGetUniformLocation(compiledPrograms[0], "activeLight"), inputs.GetFlash());
 
-
-		
-			sun.Update(time.deltaTime);
-			for (Model mod : models)
+			for (GameObject* gO : gameObjects)
 			{
-				mod.Render();
-			}
+				gO->Update(time.deltaTime);
+				gO->Render();
+			}			
 
 			glFlush();
 			glfwSwapBuffers(window);				

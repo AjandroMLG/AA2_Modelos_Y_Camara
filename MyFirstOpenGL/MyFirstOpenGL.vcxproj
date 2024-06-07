@@ -25,8 +25,10 @@
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="MatrixTools.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="ModelManager.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="Stb.cpp" />
+    <ClCompile Include="Textura.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FragmentShader.glsl" />
@@ -43,6 +45,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelManager.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="Textura.h" />
     <ClInclude Include="TimeManager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

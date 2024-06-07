@@ -17,7 +17,6 @@ public:
 
 	glm::mat4 viewMatrix;
 	glm::mat4 projectionMatrix;
-	int typeOfCamera;
 	float orbitVelocity;
 
 	bool set = false;
@@ -36,7 +35,7 @@ public:
 	float lastY = 300;
 	bool firstMouse = true;	
 
-	Camera(GLuint program);
+	Camera(GLuint program, Model model);
 	void Film(float dt);
 	void ChangeCamera(int value);
 	void Update(GLuint actualProgram);

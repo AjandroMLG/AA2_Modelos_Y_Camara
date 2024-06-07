@@ -8,6 +8,7 @@ uniform vec3 colorA;
 uniform vec3 colorB;
 
 uniform bool activeLight;
+uniform bool day;
 
 uniform vec3 cameraPosition;
 uniform vec3 forwardCamera;
@@ -21,6 +22,7 @@ in vec4 primitivePosition;
 out vec4 fragColor;
 
 int flashLightDistance = 20;
+float lightForce;
 
 void main() {
         
@@ -37,14 +39,18 @@ void main() {
         if(sunLightAngle < 0.15f)
         sunLightAngle = 0.15f;
 
-        float lightForce = sunLightAngle * 3;
+        if(day)
+        lightForce = sunLightAngle * 5;
+
+        else
+         lightForce = sunLightAngle;
 
         color = vec4(baseColor.rgb * ambientColor.rgb * lightForce, 1.0);
 
         //FlashLight
         if(activeLight)
         {
-             vec3 lineToLight = normalize(cameraPosition - primitivePosition.xyz); 
+            vec3 lineToLight = normalize(cameraPosition - primitivePosition.xyz); 
             float angleFlashLight = dot(lineToLight, normalize(-forwardCamera)); 
 
             float distance = length(primitivePosition.xyz - cameraPosition);
