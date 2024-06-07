@@ -371,7 +371,8 @@ void main() {
 			camera.Update(compiledPrograms[0]);
 
 			glUniform1i(glGetUniformLocation(compiledPrograms[0], "textureSampler"), 0);
-			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(sun.position));
+			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "sourceLight"), 1, glm::value_ptr(camera.position));
+			glUniform3fv(glGetUniformLocation(compiledPrograms[0], "forwardCamera"), 1, glm::value_ptr(camera.front));
 
 		
 			sun.Update(time.deltaTime);
